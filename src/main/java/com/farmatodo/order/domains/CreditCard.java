@@ -11,6 +11,8 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -35,10 +37,12 @@ public class CreditCard {
 	@Column(name = "card_number", nullable = false, length = 512)
 	private String cardNumber;
 
+	@JdbcTypeCode(SqlTypes.SMALLINT)
 	@JsonProperty("expiration_month")
 	@Column(name = "expiration_month", nullable = false)
 	private Integer expirationMonth;
 
+	@JdbcTypeCode(SqlTypes.SMALLINT)
 	@JsonProperty("expiration_year")
 	@Column(name = "expiration_year", nullable = false)
 	private Integer expirationYear;
