@@ -2,3 +2,19 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  flyway:
+    url: ${SPRING_DATASOURCE_URL}
+    user: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+tokenization:
+  api-key: ${TOKENIZATION_API_KEY}
+  encryption-key: ${TOKENIZATION_ENCRYPTION_KEY}
+
+security:
+  jwt:
+    secret: ${SECURITY_JWT_SECRET}

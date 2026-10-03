@@ -1,12 +1,15 @@
 # Render (Web Service Docker, plan gratuito):
-# La API y PostgreSQL deben estar en la misma cuenta y región. En el Web Service define:
+# Esta imagen no guarda secretos. Spring Boot lee el entorno del proceso al arrancar.
+# En el Web Service define:
 #   SPRING_PROFILES_ACTIVE=prod
 #   SPRING_DATASOURCE_URL=jdbc:postgresql://HOST:5432/DB
 #   SPRING_DATASOURCE_USERNAME=USER
 #   SPRING_DATASOURCE_PASSWORD=PASSWORD
-# Usa INTERNAL_DB_URL (red privada de Render), no EXTERNAL_DB_URL.
+#   SECURITY_JWT_SECRET
+#   TOKENIZATION_API_KEY
+#   TOKENIZATION_ENCRYPTION_KEY
+# Usa el host interno de Render, no el externo.
 # Render entrega postgres://USER:PASSWORD@HOST:5432/DB; hay que pasarla a JDBC y separar usuario y clave.
-# EXTERNAL_DB_URL sirve para conectar desde tu máquina y suele exigir ?sslmode=require.
 # No definas PORT: Render inyecta $PORT y server.port lo lee. Flyway crea el esquema al arrancar.
 
 FROM eclipse-temurin:21-jdk-alpine AS builder
