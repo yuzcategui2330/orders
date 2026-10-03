@@ -1,0 +1,9 @@
+package com.farmatodo.order.domains.request;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record UpdateItemRequest(
+		@JsonProperty("product_id") Long productId,
+		@JsonProperty("quantity") Integer quantity
+) {
+}

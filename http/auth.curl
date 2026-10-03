@@ -1,0 +1,5 @@
+curl.exe -i -X POST http://localhost:8130/auth/login -H "Content-Type: application/json" -d '{"username":"jdoe","password":"Secret1234"}'
+
+curl.exe -i -X POST http://localhost:8130/auth/refresh-token -H "Content-Type: application/json" -d '{"refresh_token":"<refresh_token>"}'
+
+curl.exe -i -X POST http://localhost:8130/auth/change-password -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"current_password":"Secret1234","new_password":"Secret12345"}'

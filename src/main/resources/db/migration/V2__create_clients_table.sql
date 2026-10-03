@@ -1,0 +1,14 @@
+CREATE TABLE clients (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(80) NOT NULL,
+    last_name VARCHAR(80) NOT NULL,
+    phone VARCHAR(20),
+    email VARCHAR(120) NOT NULL,
+    user_id BIGINT NOT NULL,
+    address VARCHAR(255),
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_clients_user FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
+CREATE INDEX idx_clients_user_id ON clients (user_id);

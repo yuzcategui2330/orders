@@ -1,0 +1,48 @@
+server:
+  port: ${PORT:8130}
+
+spring:
+  application:
+    name: order
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/order}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:Post12.gres}
+  jpa:
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
+    url: ${SPRING_FLYWAY_URL:${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/order}}
+    user: ${SPRING_FLYWAY_USER:${SPRING_DATASOURCE_USERNAME:postgres}}
+    password: ${SPRING_FLYWAY_PASSWORD:${SPRING_DATASOURCE_PASSWORD:Post12.gres}}
+    baseline-on-migrate: true
+    locations: classpath:/db/migration
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: yorman2330@gmail.com
+    password: kiekwajbhtkrkeuw
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+products:
+  search:
+    min-stock: ${MIN_STOCK_THRESHOLD:0}
+
+tokenization:
+  api-key: ${TOKENIZATION_API_KEY:local-dev-tokenization-key}
+  rejection-rate: ${TOKEN_REJECTION_RATE:0.0}
+  encryption-key: ${TOKENIZATION_ENCRYPTION_KEY:local-tokenization-encryption-key}
+
+security:
+  jwt:
+    secret: orders-local-jwt-signing-key-2026-10-01
+    access-token-minutes: 15
+    refresh-token-days: 7

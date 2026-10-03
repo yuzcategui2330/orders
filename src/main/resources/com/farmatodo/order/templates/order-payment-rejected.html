@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Problema con tu pago</title>
+</head>
+<body style="margin:0;padding:0;background:#dbe7f5;font-family:Arial,Helvetica,sans-serif;color:#1d2a3a;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#dbe7f5;padding:24px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="420" cellspacing="0" cellpadding="0" style="width:420px;max-width:420px;background:#ffffff;border:8px solid #d7e6f6;border-radius:28px;">
+                <tr>
+                    <td style="background:#0b3f86;color:#ffffff;text-align:center;padding:28px 24px 22px;border-radius:20px 20px 0 0;">
+                        <div style="width:54px;height:54px;line-height:54px;border-radius:27px;background:#e23b3b;color:#ffffff;font-size:30px;font-weight:bold;margin:0 auto 14px;">&#10005;</div>
+                        <div style="font-size:26px;line-height:32px;font-weight:bold;">&#161;ATENCI&Oacute;N!<br>PROBLEMA CON TU PAGO</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:22px 26px 8px;font-size:15px;line-height:22px;">
+                        Lo sentimos, hubo un error procesando tu pago. Tu orden ha sido cancelada por un error en el pago.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 26px 0;">
+                        <div style="font-size:16px;font-weight:bold;margin-bottom:8px;">Details:</div>
+                        <div style="font-size:14px;line-height:22px;">
+                            &#8226; N&uacute;mero de orden: <strong>{{order_number}}</strong><br>
+                            &#8226; Fecha: {{order_date}}<br>
+                            &#8226; Estado: <strong>CANCELADA</strong><br>
+                            &#8226; Montante: {{total_amount}}<br>
+                            &#8226; Direcci&oacute;n de env&iacute;o: {{shipping_address}}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:16px 26px 0;">
+                        <div style="font-size:16px;font-weight:bold;margin-bottom:8px;">Productos:</div>
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:14px;line-height:20px;">
+                            {{products}}
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center" style="padding:22px 26px 8px;">
+                        <a href="#" style="display:inline-block;background:#f15a24;color:#ffffff;text-decoration:none;font-weight:bold;font-size:16px;border-radius:28px;padding:14px 36px;">REINTENTAR PAGO</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 26px 16px;font-size:14px;line-height:20px;">
+                        <strong>Suggestions:</strong><br>
+                        Por favor, verifica los detalles de tu tarjeta o intenta con otro m&eacute;todo.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#0b3f86;color:#ffffff;text-align:center;padding:16px 18px;border-radius:0 0 20px 20px;font-size:13px;line-height:18px;">
+                        <strong>Soporte soporte cliente:</strong><br>
+                        Cel. (42) 2753 1539 e max - contacto@farmatodo
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
