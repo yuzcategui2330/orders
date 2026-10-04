@@ -38,6 +38,10 @@ public class Product {
 	@Column(name = "short_name", nullable = false, length = 80)
 	private String shortName;
 
+	@JsonProperty("description")
+	@Column(name = "description", length = 70)
+	private String description;
+
 	@Enumerated(EnumType.STRING)
 	@JsonProperty("category")
 	@Column(name = "category", nullable = false, length = 32)
@@ -77,6 +81,11 @@ public class Product {
 
 	public Product priced(BigDecimal price) {
 		this.price = price;
+		return this;
+	}
+
+	public Product described(String description) {
+		this.description = description;
 		return this;
 	}
 

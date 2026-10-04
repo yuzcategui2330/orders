@@ -20,6 +20,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 			  AND (
 			    LOWER(product.name) LIKE LOWER(CONCAT('%', :query, '%')) ESCAPE '\\'
 			    OR LOWER(product.shortName) LIKE LOWER(CONCAT('%', :query, '%')) ESCAPE '\\'
+			    OR LOWER(product.description) LIKE LOWER(CONCAT('%', :query, '%')) ESCAPE '\\'
 			  )
 			""")
 	Page<Product> searchByNameOrShortName(

@@ -40,4 +40,15 @@ class ProductRepositorySearchTest {
 		assertEquals(1, page.getTotalElements());
 		assertEquals("Generic Tablet", page.getContent().getFirst().getName());
 	}
+
+	@Test
+	void matchesDescriptionWhenNameAndShortNameDoNotContainTheTerm() {
+		productRepository.save(Product.create("Tablet", "Tab", Category.MEDICINES, 12)
+				.described("Alivia la fiebre"));
+
+		Page<Product> page = productRepository.searchByNameOrShortName("fiebre", 0, PageRequest.of(0, 10));
+
+		assertEquals(1, page.getTotalElements());
+		assertEquals("Alivia la fiebre", page.getContent().getFirst().getDescription());
+	}
 }
