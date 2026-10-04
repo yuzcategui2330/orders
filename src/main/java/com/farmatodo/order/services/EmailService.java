@@ -1,5 +1,6 @@
 package com.farmatodo.order.services;
 
+import com.farmatodo.order.config.AsyncConfig;
 import com.farmatodo.order.templates.MailTemplate;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -29,6 +31,7 @@ public class EmailService {
 		this.from = from;
 	}
 
+	@Async(AsyncConfig.MAIL_EXECUTOR)
 	public void send(String to, MailTemplate template, Map<String, String> variables) {
 		try {
 			MimeMessage message = mailSender.createMimeMessage();

@@ -1,1 +1,1 @@
-curl.exe -i -X POST http://localhost:8130/api/v1/tokens -H "Content-Type: application/json" -H "X-API-Key: local-dev-tokenization-key" -d '{"card_number":"4242424242424242","cvv":"123","expiration_month":12,"expiration_year":2030,"holder_name":"Jane Doe","client_id":1}'
+curl.exe -i -X POST http://localhost:8130/api/v1/tokens -H "Content-Type: application/json" -H "X-API-Key: v6vf_ns4wQU-jqIRILzlmcXNHWtXa1L8N01p0_lCVKE" -d '{"card_number":"4242424242424242","cvv":"123","expiration_month":12,"expiration_year":2030,"holder_name":"Jane Doe","client_id":1}'

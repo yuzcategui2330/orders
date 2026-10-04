@@ -36,7 +36,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(HttpMethod.POST, "/auth/login", "/auth/refresh-token").permitAll()
 						.requestMatchers(HttpMethod.POST, "/clients/make-registration").permitAll()
-						.requestMatchers(HttpMethod.GET, "/products/search").permitAll()
+						.requestMatchers(HttpMethod.GET, "/products/search", "/ping").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/v1/tokens").authenticated()
 						.requestMatchers(HttpMethod.POST, "/auth/change-password").authenticated()
 						.requestMatchers("/clients", "/clients/**").authenticated()

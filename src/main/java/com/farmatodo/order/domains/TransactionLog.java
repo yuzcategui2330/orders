@@ -15,7 +15,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import tools.jackson.databind.JsonNode;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -58,12 +57,12 @@ public class TransactionLog {
 	@JdbcTypeCode(SqlTypes.JSON)
 	@JsonProperty("request_payload")
 	@Column(name = "request_payload", columnDefinition = "jsonb")
-	private JsonNode requestPayload;
+	private String requestPayload;
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@JsonProperty("response_payload")
 	@Column(name = "response_payload", columnDefinition = "jsonb")
-	private JsonNode responsePayload;
+	private String responsePayload;
 
 	@Enumerated(EnumType.STRING)
 	@JsonProperty("status")
@@ -80,8 +79,8 @@ public class TransactionLog {
 			TransactionType type,
 			TransactionAction action,
 			TransactionModule module,
-			JsonNode requestPayload,
-			JsonNode responsePayload,
+			String requestPayload,
+			String responsePayload,
 			TransactionStatus status,
 			String errorMessage) {
 		TransactionLog transactionLog = new TransactionLog();

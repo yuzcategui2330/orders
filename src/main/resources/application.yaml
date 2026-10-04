@@ -28,6 +28,9 @@ spring:
       mail:
         smtp:
           auth: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
           starttls:
             enable: true
             required: true
@@ -37,9 +40,9 @@ products:
     min-stock: ${MIN_STOCK_THRESHOLD:0}
 
 tokenization:
-  api-key: ${TOKENIZATION_API_KEY:local-dev-tokenization-key}
-  rejection-rate: ${TOKEN_REJECTION_RATE:0.0}
-  encryption-key: ${TOKENIZATION_ENCRYPTION_KEY:local-tokenization-encryption-key}
+  api-key: v6vf_ns4wQU-jqIRILzlmcXNHWtXa1L8N01p0_lCVKE
+  rejection-rate: 0.0
+  encryption-key: kmdb9EoAAjR5T1BAIzxER08ca242ymkdCM3R8E5iOek
 
 security:
   jwt:

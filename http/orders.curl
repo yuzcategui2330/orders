@@ -2,8 +2,6 @@ curl.exe -i -X POST http://localhost:8130/orders -H "Authorization: Bearer <acce
 
 curl.exe -i -X POST http://localhost:8130/orders/1/items -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"product_id":1,"quantity":2}'
 
-curl.exe -i -X PUT http://localhost:8130/orders/1/items -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"product_id":1,"quantity":1}'
-
 curl.exe -i -X POST http://localhost:8130/orders/1/pay -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"token":"<uuid>"}'
 
 curl.exe -i -X POST http://localhost:8130/orders/1/cancel -H "Authorization: Bearer <access_token>"

@@ -20,11 +20,13 @@ public class AsyncConfig implements AsyncConfigurer {
 
 	public static final String SEARCH_LOG_EXECUTOR = "searchLogExecutor";
 	public static final String TRANSACTION_LOG_EXECUTOR = "transactionLogExecutor";
+	public static final String MAIL_EXECUTOR = "mailExecutor";
 
 	private static final Logger log = LoggerFactory.getLogger(AsyncConfig.class);
 
 	private final ThreadPoolTaskExecutor searchLogExecutor = buildSearchLogExecutor();
 	private final ThreadPoolTaskExecutor transactionLogExecutor = buildTransactionLogExecutor();
+	private final ThreadPoolTaskExecutor mailExecutor = buildMailExecutor();
 
 	@Bean(name = SEARCH_LOG_EXECUTOR)
 	public ThreadPoolTaskExecutor searchLogExecutor() {
@@ -34,6 +36,11 @@ public class AsyncConfig implements AsyncConfigurer {
 	@Bean(name = TRANSACTION_LOG_EXECUTOR)
 	public ThreadPoolTaskExecutor transactionLogExecutor() {
 		return transactionLogExecutor;
+	}
+
+	@Bean(name = MAIL_EXECUTOR)
+	public ThreadPoolTaskExecutor mailExecutor() {
+		return mailExecutor;
 	}
 
 	@Override
@@ -64,6 +71,17 @@ public class AsyncConfig implements AsyncConfigurer {
 		executor.setQueueCapacity(500);
 		executor.setThreadNamePrefix("transaction-log-");
 		executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+		executor.initialize();
+		return executor;
+	}
+
+	private static ThreadPoolTaskExecutor buildMailExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(1);
+		executor.setMaxPoolSize(2);
+		executor.setQueueCapacity(50);
+		executor.setThreadNamePrefix("mail-");
+		executor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
 		executor.initialize();
 		return executor;
 	}
