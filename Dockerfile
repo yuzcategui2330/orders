@@ -28,6 +28,6 @@ RUN addgroup -S spring && adduser -S spring -G spring
 COPY --from=builder --chown=spring:spring /workspace/app.jar /app/app.jar
 USER spring
 ENV PORT=8080
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -Djava.net.preferIPv4Stack=true"
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
