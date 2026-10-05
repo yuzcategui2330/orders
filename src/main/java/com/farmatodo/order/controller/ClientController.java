@@ -2,7 +2,9 @@ package com.farmatodo.order.controller;
 
 import com.farmatodo.order.domains.Client;
 import com.farmatodo.order.domains.request.MakeRegistrationRequest;
+import com.farmatodo.order.domains.response.ClientOrderResponse;
 import com.farmatodo.order.services.ClientService;
+import com.farmatodo.order.services.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ import java.util.List;
 public class ClientController {
 
 	private final ClientService clientService;
+	private final OrderService orderService;
 
 	@PostMapping("/make-registration")
 	public ResponseEntity<Client> makeRegistration(@RequestBody MakeRegistrationRequest request) {
@@ -41,5 +44,10 @@ public class ClientController {
 	@GetMapping
 	public ResponseEntity<List<Client>> list() {
 		return ResponseEntity.ok(clientService.list());
+	}
+
+	@GetMapping("/{id}/orders")
+	public ResponseEntity<List<ClientOrderResponse>> orders(@PathVariable("id") Long id) {
+		return ResponseEntity.ok(orderService.listByClient(id));
 	}
 }

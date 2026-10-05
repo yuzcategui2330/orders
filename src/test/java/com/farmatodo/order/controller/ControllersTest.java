@@ -1,6 +1,7 @@
 package com.farmatodo.order.controller;
 
 import com.farmatodo.order.domains.Client;
+import com.farmatodo.order.domains.OrderStatus;
 import com.farmatodo.order.domains.User;
 import com.farmatodo.order.domains.request.AddItemRequest;
 import com.farmatodo.order.domains.request.ChangePasswordRequest;
@@ -53,7 +54,8 @@ class ControllersTest {
 	@Test
 	void clientControllerDelegatesRegistrationAndQueries() {
 		ClientService clientService = mock(ClientService.class);
-		ClientController controller = new ClientController(clientService);
+		OrderService orderService = mock(OrderService.class);
+		ClientController controller = new ClientController(clientService, orderService);
 		MakeRegistrationRequest registration = new MakeRegistrationRequest("ana", "Secret1234", "Ana", "Perez", null, "a@b.c", null);
 		Client client = Client.create("Ana", "Perez", null, "a@b.c", null, 1L);
 		when(clientService.makeRegistration(registration)).thenReturn(client);
@@ -64,6 +66,7 @@ class ControllersTest {
 		assertEquals(200, controller.update(1L, client).getStatusCode().value());
 		assertEquals(200, controller.findById(1L).getStatusCode().value());
 		assertEquals(200, controller.list().getStatusCode().value());
+		assertEquals(200, controller.orders(1L).getStatusCode().value());
 	}
 
 	@Test
@@ -76,6 +79,8 @@ class ControllersTest {
 		PayOrderRequest pay = new PayOrderRequest("token");
 
 		assertEquals(201, controller.create(create).getStatusCode().value());
+		assertEquals(200, controller.list(null).getStatusCode().value());
+		assertEquals(200, controller.list(OrderStatus.PAID.name()).getStatusCode().value());
 		assertEquals(200, controller.findById(1L).getStatusCode().value());
 		assertEquals(200, controller.addItem(1L, add).getStatusCode().value());
 		assertEquals(200, controller.updateItem(1L, update).getStatusCode().value());

@@ -2,11 +2,14 @@ package com.farmatodo.order.services;
 
 import com.farmatodo.order.domains.request.AddItemRequest;
 import com.farmatodo.order.domains.Category;
+import com.farmatodo.order.domains.Client;
 import com.farmatodo.order.domains.CreditCard;
 import com.farmatodo.order.domains.Order;
 import com.farmatodo.order.domains.OrderDetail;
 import com.farmatodo.order.domains.OrderStatus;
 import com.farmatodo.order.domains.request.PayOrderRequest;
+import com.farmatodo.order.domains.response.ClientOrderResponse;
+import com.farmatodo.order.domains.response.OrderResponse;
 import com.farmatodo.order.domains.Payment;
 import com.farmatodo.order.domains.PaymentStatus;
 import com.farmatodo.order.domains.Product;
@@ -40,6 +43,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -261,6 +265,100 @@ class OrderServiceTest {
 	}
 
 	@Test
+	void listReturnsEveryOrderWhenStatusIsOmitted() {
+		Client client = client(7L);
+		when(clientRepository.findByUserId(1L)).thenReturn(List.of(client));
+		when(orderRepository.findByClientIdInOrderByIdDesc(List.of(7L))).thenReturn(List.of(order));
+		when(orderDetailRepository.findByOrderIdIn(List.of(10L))).thenReturn(List.of());
+
+		List<OrderResponse> result = orderService.list(null);
+
+		assertEquals(1, result.size());
+		assertEquals(10L, result.getFirst().id());
+		assertEquals(OrderStatus.DRAFT, result.getFirst().status());
+		verify(orderRepository, never()).findByClientIdInAndStatusOrderByIdDesc(any(), any());
+	}
+
+	@Test
+	void listFiltersByStatus() {
+		Client client = client(7L);
+		when(clientRepository.findByUserId(1L)).thenReturn(List.of(client));
+		when(orderRepository.findByClientIdInAndStatusOrderByIdDesc(List.of(7L), OrderStatus.PAID)).thenReturn(List.of());
+
+		assertEquals(0, orderService.list(" paid ").size());
+	}
+
+	@Test
+	void listRejectsAnUnknownStatus() {
+		ApiException exception = assertThrows(ApiException.class, () -> orderService.list("SHIPPED"));
+
+		assertEquals(400, exception.getStatus().value());
+		assertEquals(OrderService.INVALID_STATUS, exception.getMessage());
+	}
+
+	@Test
+	void listReturnsEmptyWhenTheUserHasNoClients() {
+		when(clientRepository.findByUserId(1L)).thenReturn(List.of());
+
+		assertEquals(0, orderService.list(null).size());
+		verify(orderRepository, never()).findByClientIdInOrderByIdDesc(any());
+	}
+
+	@Test
+	void listByClientIncludesTheClientCardAndProducts() {
+		Client client = client(7L);
+		when(clientRepository.findByIdAndUserId(7L, 1L)).thenReturn(Optional.of(client));
+		when(orderRepository.findByClientIdOrderByIdDesc(7L)).thenReturn(List.of(order));
+		OrderDetail detail = OrderDetail.create(10L, 5L, 2, new BigDecimal("10.00"));
+		when(orderDetailRepository.findByOrderIdIn(List.of(10L))).thenReturn(List.of(detail));
+		Product product = Product.create("Amoxicillin", "Amox", Category.MEDICINES, 10)
+				.withId(5L)
+				.priced(new BigDecimal("5.00"))
+				.described("Alivia la fiebre");
+		when(productRepository.findAllById(any())).thenReturn(List.of(product));
+		Payment payment = Payment.approved(new BigDecimal("10.00"), "ref", 3L, 10L);
+		when(paymentRepository.findByOrderIdIn(List.of(10L))).thenReturn(List.of(payment));
+		CreditCard creditCard = CreditCard.create("card-token", "cipher", 12, Year.now().getValue() + 1, "Ana Perez", 7L).withId(3L);
+		when(creditCardRepository.findAllById(any())).thenReturn(List.of(creditCard));
+
+		ClientOrderResponse response = orderService.listByClient(7L).getFirst();
+
+		assertEquals(10L, response.id());
+		assertEquals("Ana", response.client().getName());
+		assertEquals("card-token", response.creditCard().token());
+		assertEquals("Ana Perez", response.creditCard().holderName());
+		assertEquals(5L, response.products().getFirst().productId());
+		assertEquals("Amoxicillin", response.products().getFirst().name());
+		assertEquals(2, response.products().getFirst().quantity());
+	}
+
+	@Test
+	void listByClientOmitsTheCardWhenTheOrderWasNotPaid() {
+		Client client = client(7L);
+		when(clientRepository.findByIdAndUserId(7L, 1L)).thenReturn(Optional.of(client));
+		when(orderRepository.findByClientIdOrderByIdDesc(7L)).thenReturn(List.of(order));
+		when(orderDetailRepository.findByOrderIdIn(List.of(10L))).thenReturn(List.of(
+				OrderDetail.create(10L, 5L, 1, new BigDecimal("5.00"))));
+		when(paymentRepository.findByOrderIdIn(List.of(10L))).thenReturn(List.of());
+
+		ClientOrderResponse response = orderService.listByClient(7L).getFirst();
+
+		assertNull(response.creditCard());
+		assertEquals(5L, response.products().getFirst().productId());
+		assertNull(response.products().getFirst().name());
+	}
+
+	@Test
+	void listByClientRejectsAClientThatDoesNotBelongToTheUser() {
+		when(clientRepository.findByIdAndUserId(99L, 1L)).thenReturn(Optional.empty());
+
+		ApiException exception = assertThrows(ApiException.class, () -> orderService.listByClient(99L));
+
+		assertEquals(404, exception.getStatus().value());
+		assertEquals(OrderService.CLIENT_NOT_FOUND, exception.getMessage());
+	}
+
+	@Test
 	void findByIdDoesNotWriteATransactionLog() {
 		when(orderRepository.findById(10L)).thenReturn(Optional.of(order));
 
@@ -268,6 +366,13 @@ class OrderServiceTest {
 
 		verify(transactionLogService, never()).success(any(), any(), any(), any(), any());
 		verify(transactionLogService, never()).failure(any(), any(), any(), any());
+	}
+
+	private Client client(Long id) {
+		Client client = mock(Client.class);
+		when(client.getId()).thenReturn(id);
+		when(client.getName()).thenReturn("Ana");
+		return client;
 	}
 
 	private Product product(Long id, int stock, String price) {

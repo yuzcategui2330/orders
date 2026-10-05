@@ -2,10 +2,10 @@ package com.farmatodo.order.controller;
 
 import com.farmatodo.order.domains.request.AddItemRequest;
 import com.farmatodo.order.domains.request.CreateOrderRequest;
-import com.farmatodo.order.domains.response.OrderResponse;
 import com.farmatodo.order.domains.request.PayOrderRequest;
-import com.farmatodo.order.domains.response.PaymentResponse;
 import com.farmatodo.order.domains.request.UpdateItemRequest;
+import com.farmatodo.order.domains.response.OrderResponse;
+import com.farmatodo.order.domains.response.PaymentResponse;
 import com.farmatodo.order.services.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
@@ -29,6 +32,11 @@ public class OrderController {
 	@PostMapping
 	public ResponseEntity<OrderResponse> create(@RequestBody CreateOrderRequest request) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(orderService.create(request));
+	}
+
+	@GetMapping
+	public ResponseEntity<List<OrderResponse>> list(@RequestParam(name = "status", required = false) String status) {
+		return ResponseEntity.ok(orderService.list(status));
 	}
 
 	@GetMapping("/{id}")

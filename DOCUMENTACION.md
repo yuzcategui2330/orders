@@ -115,6 +115,10 @@ La migración `V8` carga 150 productos con descripción.
 
 Una orden nace en `DRAFT`. Agregar un ítem reserva stock (`reserved_qty`). Si el producto ya está en la orden, se suma la cantidad y solo se reserva el delta. Actualizar fija la cantidad absoluta: bajarla libera reserva y dejarla en 0 borra la línea. Cancelar una orden `DRAFT` libera toda la reserva y pasa a `CANCELLED`.
 
+`GET /orders` lista las órdenes de los clientes del usuario autenticado. `status` es opcional (`DRAFT`, `PAID`, `CANCELLED`); si no viene, devuelve todas. Un valor desconocido responde 400 `Invalid status`.
+
+`GET /clients/{id}/orders` lista las órdenes de ese cliente. Cada elemento trae el cliente, la tarjeta usada en el pago (token, titular y vencimiento, sin el PAN) y los productos de la orden con cantidad y monto. Si la orden no está pagada, `credit_card` es `null`.
+
 `POST /orders/{id}/pay` recibe `{ "token": "<uuid>" }`. La tarjeta debe existir, pertenecer al cliente de la orden y no estar vencida. Si el proveedor rechaza el pago, la orden sigue en `DRAFT`, la reserva no cambia y no se crea fila en `payments`. Si el pago procede, se descuenta stock y reserva, la orden pasa a `PAID` y se guarda un pago `APPROVED` con el id interno de la tarjeta.
 
 Las mutaciones de orden bloquean la fila de la orden y luego los productos (`PESSIMISTIC_WRITE`).
@@ -143,11 +147,13 @@ Ejemplos listos para PowerShell en `http/*.curl`.
 | POST | `/clients/make-registration` | Público |
 | PUT | `/clients/{id}` | JWT, dueño |
 | GET | `/clients/{id}` | JWT, dueño |
-| GET | `/clients` | JWT, dueño |
+| GET | `/clients` | JWT. Clientes registrados del usuario |
+| GET | `/clients/{id}/orders` | JWT, dueño. Cliente, tarjeta y productos |
 | GET | `/ping` | Público. Responde `pong` |
 | GET | `/products/search?query=&page=&size=` | Público |
 | POST | `/api/v1/tokens` | Header `X-API-Key` |
 | POST | `/orders` | JWT |
+| GET | `/orders?status=` | JWT. `status` opcional; sin filtro trae todas |
 | GET | `/orders/{id}` | JWT, dueño |
 | POST | `/orders/{id}/items` | JWT |
 | PUT | `/orders/{id}/items` | JWT |

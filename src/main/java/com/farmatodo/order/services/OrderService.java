@@ -6,8 +6,12 @@ import com.farmatodo.order.domains.request.CreateOrderRequest;
 import com.farmatodo.order.domains.CreditCard;
 import com.farmatodo.order.domains.Order;
 import com.farmatodo.order.domains.OrderDetail;
+import com.farmatodo.order.domains.Client;
+import com.farmatodo.order.domains.response.ClientOrderResponse;
+import com.farmatodo.order.domains.response.CreditCardResponse;
 import com.farmatodo.order.domains.response.OrderItemResponse;
 import com.farmatodo.order.domains.response.OrderResponse;
+import com.farmatodo.order.domains.response.PurchasedProductResponse;
 import com.farmatodo.order.domains.OrderStatus;
 import com.farmatodo.order.domains.request.PayOrderRequest;
 import com.farmatodo.order.domains.Payment;
@@ -33,11 +37,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.YearMonth;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -54,6 +61,7 @@ public class OrderService {
 	public static final String ORDER_HAS_NO_ITEMS = "Order has no items";
 	public static final String CARD_EXPIRED = "Card is expired";
 	public static final String PAYMENT_REJECTED = "Payment rejected by the provider";
+	public static final String INVALID_STATUS = "Invalid status";
 
 	private final OrderRepository orderRepository;
 	private final OrderDetailRepository orderDetailRepository;
@@ -101,6 +109,45 @@ public class OrderService {
 	public OrderResponse findById(Long orderId) {
 		Order order = ownedOrder(orderId);
 		return toResponse(order, orderDetailRepository.findByOrderId(order.getId()));
+	}
+
+	@Transactional(readOnly = true)
+	public List<OrderResponse> list(String status) {
+		OrderStatus orderStatus = parseStatus(status);
+		List<Long> clientIds = clientRepository.findByUserId(currentUserId()).stream()
+				.map(Client::getId)
+				.toList();
+		if (clientIds.isEmpty()) {
+			return List.of();
+		}
+		List<Order> orders = orderStatus == null
+				? orderRepository.findByClientIdInOrderByIdDesc(clientIds)
+				: orderRepository.findByClientIdInAndStatusOrderByIdDesc(clientIds, orderStatus);
+		return toResponses(orders);
+	}
+
+	@Transactional(readOnly = true)
+	public List<ClientOrderResponse> listByClient(Long clientId) {
+		Client client = clientRepository.findByIdAndUserId(clientId, currentUserId())
+				.orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, CLIENT_NOT_FOUND));
+		List<Order> orders = orderRepository.findByClientIdOrderByIdDesc(clientId);
+		if (orders.isEmpty()) {
+			return List.of();
+		}
+		List<Long> orderIds = orders.stream().map(Order::getId).toList();
+		Map<Long, List<OrderDetail>> detailsByOrder = detailsByOrder(orderIds);
+		Map<Long, Product> products = productsOf(detailsByOrder);
+		Map<Long, Payment> payments = paymentsByOrder(orderIds);
+		Map<Long, CreditCard> cards = cardsOf(payments.values());
+		return orders.stream()
+				.map(order -> toClientOrder(
+						order,
+						client,
+						detailsByOrder.getOrDefault(order.getId(), List.of()),
+						products,
+						payments.get(order.getId()),
+						cards))
+				.toList();
 	}
 
 	@Transactional
@@ -346,6 +393,119 @@ public class OrderService {
 
 	private boolean isExpired(CreditCard creditCard) {
 		return YearMonth.of(creditCard.getExpirationYear(), creditCard.getExpirationMonth()).isBefore(YearMonth.now());
+	}
+
+	private OrderStatus parseStatus(String status) {
+		if (status == null || status.isBlank()) {
+			return null;
+		}
+		try {
+			return OrderStatus.valueOf(status.trim().toUpperCase());
+		} catch (IllegalArgumentException exception) {
+			throw new ApiException(HttpStatus.BAD_REQUEST, INVALID_STATUS);
+		}
+	}
+
+	private List<OrderResponse> toResponses(List<Order> orders) {
+		if (orders.isEmpty()) {
+			return List.of();
+		}
+		Map<Long, List<OrderDetail>> detailsByOrder = detailsByOrder(orders.stream().map(Order::getId).toList());
+		return orders.stream()
+				.map(order -> toResponse(order, detailsByOrder.getOrDefault(order.getId(), List.of())))
+				.toList();
+	}
+
+	private Map<Long, List<OrderDetail>> detailsByOrder(List<Long> orderIds) {
+		return orderDetailRepository.findByOrderIdIn(orderIds).stream()
+				.collect(Collectors.groupingBy(OrderDetail::getOrderId));
+	}
+
+	private Map<Long, Product> productsOf(Map<Long, List<OrderDetail>> detailsByOrder) {
+		List<Long> productIds = detailsByOrder.values().stream()
+				.flatMap(List::stream)
+				.map(OrderDetail::getProductId)
+				.distinct()
+				.toList();
+		if (productIds.isEmpty()) {
+			return Map.of();
+		}
+		return productRepository.findAllById(productIds).stream()
+				.collect(Collectors.toMap(Product::getId, Function.identity()));
+	}
+
+	private Map<Long, Payment> paymentsByOrder(List<Long> orderIds) {
+		return paymentRepository.findByOrderIdIn(orderIds).stream()
+				.collect(Collectors.toMap(Payment::getOrderId, Function.identity(), this::latestPayment));
+	}
+
+	private Payment latestPayment(Payment left, Payment right) {
+		if (left.getId() == null) {
+			return right;
+		}
+		if (right.getId() == null) {
+			return left;
+		}
+		return left.getId() >= right.getId() ? left : right;
+	}
+
+	private Map<Long, CreditCard> cardsOf(Collection<Payment> payments) {
+		List<Long> cardIds = payments.stream()
+				.map(Payment::getCreditCardId)
+				.distinct()
+				.toList();
+		if (cardIds.isEmpty()) {
+			return Map.of();
+		}
+		return creditCardRepository.findAllById(cardIds).stream()
+				.collect(Collectors.toMap(CreditCard::getId, Function.identity()));
+	}
+
+	private ClientOrderResponse toClientOrder(
+			Order order,
+			Client client,
+			List<OrderDetail> details,
+			Map<Long, Product> products,
+			Payment payment,
+			Map<Long, CreditCard> cards) {
+		CreditCardResponse creditCard = null;
+		if (payment != null) {
+			CreditCard card = cards.get(payment.getCreditCardId());
+			if (card != null) {
+				creditCard = new CreditCardResponse(
+						card.getId(),
+						card.getToken(),
+						card.getHolderName(),
+						card.getExpirationMonth(),
+						card.getExpirationYear(),
+						card.getClientId());
+			}
+		}
+		List<PurchasedProductResponse> purchased = details.stream()
+				.sorted(Comparator.comparing(OrderDetail::getProductId))
+				.map(detail -> purchasedProduct(detail, products.get(detail.getProductId())))
+				.toList();
+		return new ClientOrderResponse(
+				order.getId(),
+				order.getAmount(),
+				order.getStatus(),
+				order.getDelivered(),
+				order.getCreatedAt(),
+				order.getUpdatedAt(),
+				client,
+				creditCard,
+				purchased);
+	}
+
+	private PurchasedProductResponse purchasedProduct(OrderDetail detail, Product product) {
+		return new PurchasedProductResponse(
+				detail.getProductId(),
+				product == null ? null : product.getName(),
+				product == null ? null : product.getShortName(),
+				product == null ? null : product.getDescription(),
+				product == null ? null : product.getCategory(),
+				detail.getQuantity(),
+				detail.getAmount());
 	}
 
 	private OrderResponse toResponse(Order order, List<OrderDetail> details) {

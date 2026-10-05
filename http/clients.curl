@@ -2,6 +2,8 @@ curl.exe -i -X POST http://localhost:8130/clients/make-registration -H "Content-
 
 curl.exe -i http://localhost:8130/clients -H "Authorization: Bearer <access_token>"
 
+curl.exe -i http://localhost:8130/clients/1/orders -H "Authorization: Bearer <access_token>"
+
 curl.exe -i http://localhost:8130/clients/1 -H "Authorization: Bearer <access_token>"
 
 curl.exe -i -X PUT http://localhost:8130/clients/1 -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"name":"John","last_name":"Doe","phone":"5559999","email":"john@example.com","address":"Street 2"}'
